@@ -1,95 +1,93 @@
-#!"C:\Python33\python.exe"
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+
+from time import sleep
 import pywhatkit as pwk
-import datetime
 from datetime import datetime as dt
+from datetime import timedelta, date
 
-tddt = dt.today().strftime('%m-%d')
+import os.path
 
-marlinNeighborsAnniversaryList ={
-    #February
-    "02-25" : ["Anupama & Raghu"],
-    "03-01": ["Yogeshwari & Baps"],
-    "04-30" : ["Sheetal & Rahul"],
-    "05-11" : ["Kshitija & Ganesh"],
-    "06-26" : ["Neera & Yash"],
-    "06-29" : ["Jessie & Victor"],
-    "08-29" : ["Halona & Tony"],
-    "11-19" : ["Sumathi & Ramesh"],
-    "11-22" : ["Laura & Abhinav"],
-    "11-27" : ["Ritu & Ram"],
-    "12-07" : ["Sindhu & Chaitanya"]
-}
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-marlinNeighborsBirthdayList = {
-    #January
-    "01-12": ["Jessie"],
-    "01-14": ["Aaran", "Kirath"], 
-    #February
-    #March
-    "03-02": ["Tyler"],
-    "03-09": ["Ashrit"],
-    "03-13": ["Yuvan"],
-    "03-17": ["Nilima"],
-    "03-19": ["Victor"],
-    "03-22": ["Abhinav"],
-    "03-24": ["Raya"],
-    #April
-    "04-11": ["Sumathi"],
-    "04-17": ["Agastya"],
-    #May
-    "05-12": ["Yogeshwari"],
-    "05-12": ["Tanishq"],
-    #June
-    "06-12": ["Laura"],
-    "06-15": ["Halona", "Mango 🐶", "Bruno 🐶"],
-    "06-22": ["Rupinder"],
-    "06-25": ["Yash"],
-    #July
-    "07-09" : ["Rijul"],
-    "07-12": ["Ram", "Harshul"],
-    "07-20": ["Mason"],
-    "07-21": ["Sindhu"],
-    "07-26": ["Isha"],
-    "07-28": ["Skittles 🐶"],
-    #August
-    "08-03":["Ganesh"],
-    "08-06": ["Arish"],
-    "08-16" : ["Baps"],
-    "08-18" : ["Reyansh"],
-    "08-22": ["Kshitija"],
-    "08-29": ["Punit"],
-    "08-30":["Tony"],
-    #September
-    "09-27" : ["Anupama"],
-    "09-28" : ["George P. Burdell"],
-    #October
-    "10-05":["Sheetal"],
-    "10-06" : ["Ritu"],
-    "10-15" : ["Ramesh"],
-    "10-20" : ["Chaitanya"],
-    "10-29" : ["Vai"],
-    #November
-    "11-04" : ["Neera"],
-    "11-07" : ["Cotton 🐶"],
-    "11-13" : ["Kolm 🐶"],
-    #December
-    "12-02": ["Tanay"],
-    "12-03" : ["Makarand"],
-    "12-05" : ["Rahul"],
-    "12-12" : ["Raghu"],
-    "12-20" : ["Marley 🐶"],
-    "12-22" : ["Shlok"],
-    "12-27" : ["Samar"],
-    "12-30" : ["Aditya"],
-    "12-30" : ["Riya"]
-}
+# If modifying these scopes, delete the file token.json.
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
-for d, l in marlinNeighborsAnniversaryList.items():
-    if d == tddt:
-        for p in l:
-            pwk.sendwhatmsg_to_group("EKTjU1Q83VQEOHivz0PjIC", "Happy Anniversary" + p, 7, 0)
+def main():
+    """Shows basic usage of the Google Calendar API.
+    Prints the start and name of the next 10 events on the user's calendar.
+    """
+    creds = None
+    # The file token.json stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
 
-for d, l in marlinNeighborsBirthdayList.items():
-    if d == tddt:
-        for p in l:
-            pwk.sendwhatmsg_to_group("EKTjU1Q83VQEOHivz0PjIC", "Happy Birthday" + p, 7, 0)
+    try:
+        service = build('calendar', 'v3', credentials=creds)
+
+        # Call the Calendar API
+        now = dt.utcnow()# + 'Z'  # 'Z' indicates UTC time
+        today = str(date.today())
+        #print(today)
+        timeMin = dt.fromisoformat(today)
+        delta = timedelta(hours = 4)
+        timeMin = timeMin +delta
+        delta = timedelta(hours = 23, minutes=59, seconds=59)
+        timeMax = timeMin +delta
+        timeMin = timeMin.isoformat()+'Z'
+        timeMax = timeMax.isoformat()+'Z'
+        # timeMin = timeMin+'-07:00'
+        # timeMax = timeMax.isoformat()+'-07:00'
+        #print(timeMin)
+        #print(timeMax)
+        events_result = service.events().list(calendarId='4c03868c4f5e2ff2954600304e50f2b71e216a458456180b33790d0d92c34c4d@group.calendar.google.com', 
+                                                timeMin=timeMin,
+                                                timeMax = timeMax, 
+                                                singleEvents=True,
+                                              ).execute()
+        events = events_result.get('items', [])
+
+        if not events:
+            print('No upcoming events found.')
+            return
+        else:
+            message = ""
+            for event in events:
+                start = event['start'].get('dateTime', event['start'].get('date'))
+                print(start, event['summary'])
+                text = event['summary']
+                nameEnd = text.index('\'')
+                name = text[:nameEnd]
+                if "Anniversary" in text or "anniversary" in text:
+                    message += "Happy Anniversary " + name + " :ring\t" + " :confetti\t" + "\n"
+                if name is not "Jessie":
+                    if "Bday" in text or "bday" in text:
+                        message += "Happy Birthday " + name + " :cake\t" + " :hat\t" + "\n"
+                #print(message)
+            pwk.sendwhatmsg_to_group_instantly(group_id="1DocDGrVE671sOh1MrdFfS", message = message, tab_close=True)
+		    #MarlinNeighbors GroupId = "1DocDGrVE671sOh1MrdFfS"	
+		    #DevTesting GroupId = "HVTkMePvgYF9Q4TPQypOS2"
+
+    except HttpError as error:
+        print('An error occurred: %s' % error)
+
+
+if __name__ == '__main__':
+    main()
