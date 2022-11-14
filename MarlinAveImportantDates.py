@@ -7,6 +7,7 @@ from datetime import datetime as dt
 from datetime import timedelta, date
 
 import os.path
+import webbrowser
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -47,9 +48,9 @@ def main():
         today = str(date.today())
         #print(today)
         timeMin = dt.fromisoformat(today)
-        delta = timedelta(hours = 4)
+        delta = timedelta(hours = 5)
         timeMin = timeMin +delta
-        delta = timedelta(hours = 23, minutes=59, seconds=59)
+        delta = timedelta(hours = 23)
         timeMax = timeMin +delta
         timeMin = timeMin.isoformat()+'Z'
         timeMax = timeMax.isoformat()+'Z'
@@ -63,9 +64,18 @@ def main():
                                                 singleEvents=True,
                                               ).execute()
         events = events_result.get('items', [])
-
+        
+        creation_date = date.fromisoformat('2022-11-14')
+        current_date = date.today()
+        expiration = current_date-creation_date
+        expiration = 100-expiration.days    
+        
         if not events:
-            print('No upcoming events found.')
+            if expiration <= 0:
+                exp_message = "No upcoming events found.\n. Renew token."
+            else:
+                exp_message ="No upcoming events found.\n" + str(expiration) + " days until token expires"
+            pwk.sendwhatmsg_to_group_instantly(group_id="HVTkMePvgYF9Q4TPQypOS2", message = exp_message, tab_close=True)
             return
         else:
             message = ""
@@ -77,11 +87,16 @@ def main():
                 name = text[:nameEnd]
                 if "Anniversary" in text or "anniversary" in text:
                     message += "Happy Anniversary " + name + " :ring\t" + " :confetti\t" + "\n"
-                if name is not "Jessie":
+                if name != "Jessie":
                     if "Bday" in text or "bday" in text:
                         message += "Happy Birthday " + name + " :cake\t" + " :hat\t" + "\n"
                 #print(message)
             pwk.sendwhatmsg_to_group_instantly(group_id="1DocDGrVE671sOh1MrdFfS", message = message, tab_close=True)
+            if expiration <= 0:
+                exp_message = "Renew token"
+            else:
+                exp_message ="Events found.\n" + str(expiration) + " days until token expires"
+            pwk.sendwhatmsg_to_group_instantly(group_id="HVTkMePvgYF9Q4TPQypOS2", message = exp_message, tab_close=True)
 		    #MarlinNeighbors GroupId = "1DocDGrVE671sOh1MrdFfS"	
 		    #DevTesting GroupId = "HVTkMePvgYF9Q4TPQypOS2"
 
