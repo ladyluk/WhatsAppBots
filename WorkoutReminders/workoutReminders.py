@@ -4,7 +4,7 @@ import time
 import os
 
 os.startfile("whatsapp://send?phone=19176126688")
-time.sleep(5)
+time.sleep(2)
 
 
 
@@ -23,4 +23,9 @@ pyautogui.press('tab')
 pyautogui.press('enter')
 
 # write message
+time.sleep(2)
+# clears textbox
+pyautogui.hotkey('ctrl', 'a')
+pyautogui.press('delete')
+pyautogui.write("Hello World")
 
