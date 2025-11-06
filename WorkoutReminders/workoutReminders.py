@@ -29,6 +29,7 @@ pyautogui.press('delete')
 pyautogui.write("Hello World")
 
 import datetime
+from datetime import datetime as dt
 import os
 from pathlib import Path
 
@@ -53,8 +54,9 @@ def main():
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
   # time.
-  if os.path.exists("token.json"):
-    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+  path = CLIENT_DIR_PATH + "\\token.json"
+  if os.path.exists(path):
+    creds = Credentials.from_authorized_user_file(path, SCOPES)
   # If there are no (valid) credentials available, let the user log in.
   if not creds or not creds.valid:
     if creds and creds.expired and creds.refresh_token:
@@ -65,7 +67,7 @@ def main():
       )
       creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("token.json", "w") as token:
+    with open(path, "w") as token:
       token.write(creds.to_json())
 
   try:
@@ -77,9 +79,9 @@ def main():
     events_result = (
         service.events()
         .list(
-            calendarId="primary",
+            calendarId="875835bd9794a5187c651c980a08ef3f73593016803d682a816d8d0eae683e62@group.calendar.google.com",
             timeMin=now,
-            maxResults=10,
+            maxResults=100,
             singleEvents=True,
             orderBy="startTime",
         )
@@ -92,9 +94,14 @@ def main():
       return
 
     # Prints the start and name of the next 10 events
+    substring = "woodmont"
     for event in events:
-      start = event["start"].get("dateTime", event["start"].get("date"))
-      print(start, event["summary"])
+    #   print(event["start"])
+      if substring in event["summary"].lower():
+        googletime = event["start"].get("dateTime", event["start"].get("date"))
+        # parse ISO 8601 string 
+        parsedtime = dt.fromisoformat(googletime)
+        print(parsedtime.strftime("%B %d, %Y, %I:%M %p"), event["summary"])
 
   except HttpError as error:
     print(f"An error occurred: {error}")
