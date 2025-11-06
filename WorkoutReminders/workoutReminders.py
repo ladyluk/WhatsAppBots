@@ -2,31 +2,7 @@
 import pyautogui
 import time
 import os
-
-
-os.startfile("whatsapp://send?phone=19176126688")
-time.sleep(2)
-
-pyautogui.keyDown("ctrl")
-pyautogui.press('f')
-pyautogui.keyUp("ctrl")
-# clears textbox
-pyautogui.hotkey('ctrl', 'a')
-pyautogui.press('delete')
-
-# search for workout class
-pyautogui.write("Woodmont Workouts")
-
-# click into appropriate chat
-pyautogui.press('tab')
-pyautogui.press('enter')
-
-# write message
-time.sleep(2)
-# clears textbox
-pyautogui.hotkey('ctrl', 'a')
-pyautogui.press('delete')
-pyautogui.write("Hello World")
+import emoji
 
 import datetime
 from datetime import datetime as dt
@@ -95,17 +71,49 @@ def main():
 
     # Prints the start and name of the next 10 events
     substring = "woodmont"
+    workouts = []
     for event in events:
     #   print(event["start"])
       if substring in event["summary"].lower():
         googletime = event["start"].get("dateTime", event["start"].get("date"))
         # parse ISO 8601 string 
         parsedtime = dt.fromisoformat(googletime)
-        print(parsedtime.strftime("%B %d, %Y, %I:%M %p"), event["summary"])
-
+        workouts.append(parsedtime.strftime("%B %d, %Y, %I:%M %p"))
+    return workouts
   except HttpError as error:
     print(f"An error occurred: {error}")
 
 
 if __name__ == "__main__":
-  main()
+    workouts = main()
+    os.startfile("whatsapp://send?phone=19176126688")
+    time.sleep(2)
+
+    pyautogui.keyDown("ctrl")
+    pyautogui.press('f')
+    pyautogui.keyUp("ctrl")
+    # clears textbox
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.press('delete')
+
+    # search for workout class
+    pyautogui.write("Woodmont Workouts")
+
+    # click into appropriate chat
+    pyautogui.press('tab')
+    pyautogui.press('enter')
+
+    # write message
+    time.sleep(2)
+    # clears textbox
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.press('delete')
+    pyautogui.write("Weekly Upcoming Woodmont Workout Bot Reminder :robot")
+    time.sleep(1)
+    pyautogui.press('tab')
+    pyautogui.write(". Be there or be destroyed:")
+    # time.sleep(1)
+    for workout in workouts:
+        pyautogui.hotkey('shift', 'enter')
+        pyautogui.write(workout)
+    pyautogui.press('enter')
